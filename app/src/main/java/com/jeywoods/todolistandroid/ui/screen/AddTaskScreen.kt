@@ -83,26 +83,25 @@ fun AddTaskScreen(
         ){
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = { if(it.length <= 25) title = it },
                 label = { Text("Title") },
                 placeholder = { Text("Title") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                textStyle = MaterialTheme.typography.headlineLarge,
+                textStyle = MaterialTheme.typography.headlineMedium,
                 singleLine = true
             )
 
             OutlinedTextField(
                 value = description,
-                onValueChange = { description = it },
+                onValueChange = { if(it.length <= 150) description = it },
                 label = { Text("Description")},
                 placeholder = { Text("Enter your TODO here") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),
-                textStyle = MaterialTheme.typography.headlineSmall,
-                maxLines = 5
+                textStyle = MaterialTheme.typography.headlineSmall
             )
             FloatingActionButton(
                 onClick = {
