@@ -36,11 +36,11 @@ import com.jeywoods.todolistandroid.viewModel.TaskViewModel
 @Composable
 fun AddTaskScreen(
     taskViewModel: TaskViewModel,
-    onBack: () -> Unit,
-    onAddClick: (title: String, description: String) -> Unit
-){
+    onBack: () -> Unit
+) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+
     Scaffold(
         topBar = {
             Column {
@@ -68,9 +68,7 @@ fun AddTaskScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color.White
                     )
-
                 }
-
             }
         },
     ) { paddingValues ->
@@ -81,16 +79,32 @@ fun AddTaskScreen(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.Top
         ){
+            if (taskViewModel.errorMessage != null && title.isBlank()) {
+                Text(
+                    text = taskViewModel.errorMessage!!,
+                    color = Color.Red,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             OutlinedTextField(
                 value = title,
-                onValueChange = { if(it.length <= 25) title = it },
+                onValueChange = {
+                    if(it.length <= 25) {
+                        title = it
+                        if (it.isNotBlank()) {
+                            taskViewModel.clearError()
+                        }
+                    }
+                },
                 label = { Text("Title") },
                 placeholder = { Text("Title") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 textStyle = MaterialTheme.typography.headlineMedium,
-                singleLine = true
+                singleLine = true,
+                isError = taskViewModel.errorMessage != null && title.isBlank()
             )
 
             OutlinedTextField(
@@ -101,12 +115,16 @@ fun AddTaskScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),
-                textStyle = MaterialTheme.typography.headlineSmall
+                textStyle = MaterialTheme.typography.headlineSmall,
+                maxLines = 5
             )
+
             FloatingActionButton(
                 onClick = {
-                    onAddClick(title, description)
-                    onBack()
+                    val success = taskViewModel.addTask(title, description)
+                    if (success) {
+                        onBack()
+                    }
                 },
                 shape = CircleShape,
                 modifier = Modifier
@@ -122,8 +140,6 @@ fun AddTaskScreen(
                 )
             }
         }
-
-
     }
 }
 
@@ -134,9 +150,7 @@ fun AddTaskScreenPreview() {
     MaterialTheme {
         AddTaskScreen(
             taskViewModel = taskViewModel,
-            onBack = {},
-            onAddClick = { title, description ->  }
+            onBack = {}
         )
     }
 }
-

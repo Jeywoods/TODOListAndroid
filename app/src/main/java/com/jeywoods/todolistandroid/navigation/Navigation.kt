@@ -31,9 +31,6 @@ fun Navigation() {
             AddTaskScreen(
                 taskViewModel = taskViewModel,
                 onBack = { navController.popBackStack() },
-                onAddClick = { title, description ->
-                    taskViewModel.addTask(title, description)
-                }
             )
         }
 

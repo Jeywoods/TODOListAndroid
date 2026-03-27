@@ -20,8 +20,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,6 +85,13 @@ fun DetailsTaskScreen(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.Top
         ) {
+            if (taskViewModel.errorMessage != null && title.isBlank()) {
+                Text(
+                    text = taskViewModel.errorMessage!!,
+                    color = Color.Red,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
             OutlinedTextField(
                 value = title,
                 onValueChange = { if(it.length <= 25) title = it },
@@ -90,7 +101,8 @@ fun DetailsTaskScreen(
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 textStyle = MaterialTheme.typography.headlineMedium,
-                singleLine = true
+                singleLine = true,
+                isError = taskViewModel.errorMessage != null && title.isBlank()
             )
 
             OutlinedTextField(
@@ -104,10 +116,13 @@ fun DetailsTaskScreen(
                 textStyle = MaterialTheme.typography.headlineSmall,
                 maxLines = 5
             )
+
             FloatingActionButton(
                 onClick = {
-                    taskViewModel.updateTask(task, title, description)
-                    onBack()
+                    val success = taskViewModel.updateTask(task, title, description)
+                    if (success) {
+                        onBack()
+                    }
                 },
                 shape = CircleShape,
                 modifier = Modifier
@@ -122,7 +137,6 @@ fun DetailsTaskScreen(
                     contentDescription = "Save changes"
                 )
             }
-
         }
     }
 }
