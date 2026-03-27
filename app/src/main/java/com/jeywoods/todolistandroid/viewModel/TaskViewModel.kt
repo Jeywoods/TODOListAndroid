@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import com.jeywoods.todolistandroid.model.Task
 
 class TaskViewModel : ViewModel() {
-
     var tasks = mutableStateListOf<Task>()
         private set
 
