@@ -17,11 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.jeywoods.todolistandroid.model.Task
+import com.jeywoods.todolistandroid.model.TaskEntity
 
 @Composable
 fun TaskItem(
-    task: Task,
+    task: TaskEntity,
     onDelete: () -> Unit = {},
     onChecked: (Boolean) -> Unit = {},
     onClick: () -> Unit = {}
@@ -69,7 +69,7 @@ fun TaskItem(
 fun TaskItemPreview() {
     MaterialTheme {
         TaskItem(
-            task = Task(
+            task = TaskEntity(
                 id = "1",
                 title = "Sample task",
                 isChecked = false
@@ -83,7 +83,7 @@ fun TaskItemPreview() {
 fun TaskItemCheckedPreview() {
     MaterialTheme {
         TaskItem(
-            task = Task(
+            task = TaskEntity(
                 id = "2",
                 title = "Completed task",
                 isChecked = true

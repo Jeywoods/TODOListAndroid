@@ -1,7 +1,7 @@
 package com.jeywoods.todolistandroid.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -20,8 +21,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,20 +34,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.jeywoods.todolistandroid.model.Task
+import com.jeywoods.todolistandroid.model.TaskEntity
 import com.jeywoods.todolistandroid.viewModel.TaskViewModel
 
 @Composable
 fun DetailsTaskScreen(
-    task: Task,
+    task: TaskEntity,
     taskViewModel: TaskViewModel,
     onBack: () -> Unit
 ) {
     var title by remember { mutableStateOf(task.title) }
     var description by remember { mutableStateOf(task.description) }
 
+    val snackBarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(taskViewModel.errorMessage) {
+        taskViewModel.errorMessage?.let {
+            snackBarHostState.showSnackbar(it)
+            taskViewModel.clearError()
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()){
     Scaffold(
         topBar = {
             Column {
@@ -74,20 +88,14 @@ fun DetailsTaskScreen(
             }
         },
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.Top
+                .padding(paddingValues)
         ) {
-            if (taskViewModel.errorMessage != null && title.isBlank()) {
-                Text(
-                    text = taskViewModel.errorMessage!!,
-                    color = Color.Red,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { if(it.length <= 25) title = it },
@@ -115,10 +123,8 @@ fun DetailsTaskScreen(
 
             FloatingActionButton(
                 onClick = {
-                    val success = taskViewModel.updateTask(task, title, description)
-                    if (success) {
-                        onBack()
-                    }
+                    taskViewModel.updateTask(task, title, description)
+                    onBack()
                 },
                 shape = CircleShape,
                 modifier = Modifier
@@ -135,24 +141,25 @@ fun DetailsTaskScreen(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DetailsTaskScreenPreview() {
-    val sampleTask = Task(
-        title = "Sample Task",
-        description = "This is a sample description",
-        isChecked = false
-    )
-
-    val taskViewModel = remember { TaskViewModel() }
-
-    MaterialTheme {
-        DetailsTaskScreen(
-            task = sampleTask,
-            taskViewModel = taskViewModel,
-            onBack = {}
+        SnackbarHost(
+            hostState = snackBarHostState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(20.dp),
+            snackbar = {data ->
+                Snackbar(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    containerColor = Color.Black,
+                    contentColor = Color.White
+                ){
+                    Text(text = data.visuals.message)
+                }
+            }
         )
     }
 }

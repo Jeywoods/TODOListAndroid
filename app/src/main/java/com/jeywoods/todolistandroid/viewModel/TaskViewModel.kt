@@ -1,14 +1,21 @@
 package com.jeywoods.todolistandroid.viewModel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.jeywoods.todolistandroid.model.Task
+import androidx.lifecycle.viewModelScope
+import com.jeywoods.todolistandroid.data.TaskRepository
+import com.jeywoods.todolistandroid.model.TaskEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class TaskViewModel : ViewModel() {
-    var tasks = mutableStateListOf<Task>()
+class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
+    var tasks: StateFlow<List<TaskEntity>> = repository.tasks
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
         private set
 
     var errorMessage by mutableStateOf<String?>(null)
@@ -20,41 +27,34 @@ class TaskViewModel : ViewModel() {
             return false
         }
         errorMessage = null
-        tasks.add(Task(title = title, description = description))
+        viewModelScope.launch {
+            repository.addTask(TaskEntity(title = title, description = description))
+        }
         return true
     }
 
-    fun deleteTask(task: Task) {
-        tasks.remove(task)
+    fun deleteTask(task: TaskEntity) {
+        viewModelScope.launch {
+            repository.deleteTask(task)
+        }
         errorMessage = null
     }
 
-    fun toggleTask(task: Task, checked: Boolean) {
-        val index = tasks.indexOf(task)
-        if (index != -1) {
-            tasks[index] = task.copy(isChecked = checked)
-        }
+    fun toggleTask(task: TaskEntity, checked: Boolean) {
+        viewModelScope.launch { repository.updateTask(task.copy(isChecked = checked)) }
     }
-
-    fun getTaskById(id: String): Task? {
-        return tasks.find { it.id == id }
-    }
-
-    fun updateTask(task: Task, newTitle: String, newDescription: String): Boolean {
+    fun updateTask(task: TaskEntity, newTitle: String, newDescription: String) {
         if (newTitle.isBlank()) {
             errorMessage = "Title cannot be empty"
-            return false
+            return
         }
         errorMessage = null
-        val index = tasks.indexOf(task)
-        if (index != -1) {
-            tasks[index] = task.copy(
-                title = newTitle,
-                description = newDescription
-            )
-            return true
+        viewModelScope.launch {
+            repository.updateTask(task.copy(title = newTitle, description = newDescription))
         }
-        return false
+    }
+    fun getTaskById(id: String): Flow<TaskEntity?> {
+        return repository.findTaskById(id)
     }
     fun clearError() {
         errorMessage = null

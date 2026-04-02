@@ -19,12 +19,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jeywoods.todolistandroid.components.TaskItem
 import com.jeywoods.todolistandroid.viewModel.TaskViewModel
@@ -35,7 +34,7 @@ fun ToDoScreen(
     onAddClick: () -> Unit,
     onTaskClick: (String) -> Unit
 ) {
-    val tasks = taskViewModel.tasks
+    val tasks = taskViewModel.tasks.collectAsState()
 
     Scaffold(
         topBar = {
@@ -56,7 +55,7 @@ fun ToDoScreen(
                     )
 
                     Text(
-                        text = "Total: ${tasks.size} - Checked: ${tasks.count { it.isChecked }}",
+                        text = "Total: ${tasks.value.size} - Checked: ${tasks.value.count { it.isChecked }}",
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(16.dp),
                         color = Color.White
@@ -90,7 +89,7 @@ fun ToDoScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 70.dp)
         ) {
-            items(tasks) { task ->
+            items(tasks.value) { task ->
                 TaskItem(
                     task = task,
                     onDelete = { taskViewModel.deleteTask(task) },
@@ -100,15 +99,4 @@ fun ToDoScreen(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ToDoScreenPreview() {
-    val taskViewModel = remember { TaskViewModel() }
-    ToDoScreen(
-        taskViewModel = taskViewModel,
-        onAddClick = {},
-        onTaskClick = {}
-    )
 }
